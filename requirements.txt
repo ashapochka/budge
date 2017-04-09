@@ -1,0 +1,8 @@
+pandas
+jupyter
+odo
+requests
+invoke
+pytest
+wget
+sqlalchemy
