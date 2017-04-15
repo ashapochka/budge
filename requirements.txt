@@ -6,3 +6,4 @@ invoke
 pytest
 wget
 sqlalchemy
+bokeh
