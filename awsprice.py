@@ -3,7 +3,6 @@ import re
 
 import logging
 
-import sqlite3
 import tempfile
 from collections import OrderedDict
 
@@ -12,6 +11,7 @@ import pandas as pd
 import requests
 import wget
 from datashape import Record
+from pprint import pprint
 from sqlalchemy import create_engine, MetaData
 
 
@@ -98,3 +98,35 @@ def fetch_offers_to_database(sqlite_path, csv_directory=None, overwrite=False):
     else:
         offers = run_steps(csv_directory)
     return offers
+
+
+def load_ec2_frame(sqlite_path):
+    ec2_sql = pd.read_sql('SELECT * FROM AmazonEC2 '
+                          'WHERE Location = "US East (Ohio)" '
+                          'AND Product_Family = "Compute Instance" '
+                          'AND TermType = "OnDemand" '
+                          'AND Tenancy = "Shared" '
+                          'AND Operating_System = "Linux" ',
+                          'sqlite:///{}'.format(sqlite_path),
+                          coerce_float=True,
+                          parse_dates={'EffectiveDate': '%Y-%m-%d'})
+    return ec2_sql
+
+
+def column_values(frame):
+    return [(column, frame[column].unique()) for column in frame.columns]
+
+
+def group_by_offer(frame):
+    grouped_by_term = frame[
+        frame.Instance_Type == 't2.medium'].groupby(['OfferTermCode'])
+    return grouped_by_term
+
+
+def inspect_offer_groups(grouped_by_offer):
+    for g in grouped_by_offer.groups:
+        pprint(grouped_by_offer.get_group(g)[
+                   ['OfferTermCode', 'RateCode', 'TermType',
+                    'PurchaseOption', 'LeaseContractLength', 'OfferingClass',
+                    'PricePerUnit', 'PriceDescription']].to_dict())
+        print('-' * 100)
