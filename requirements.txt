@@ -7,3 +7,6 @@ pytest
 wget
 sqlalchemy
 bokeh
+flask
+flask-sqlalchemy
+flask-wtf
